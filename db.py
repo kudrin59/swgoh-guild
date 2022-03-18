@@ -5,7 +5,6 @@ class BotDB:
     def __init__(self, db_file):
         self.con = sqlite3.connect(db_file)
         self.cursor = self.con.cursor()
-        self.con.text_factory = str
 
     def close(self):
         self.con.close()
