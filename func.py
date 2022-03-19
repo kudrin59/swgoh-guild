@@ -138,8 +138,6 @@ class func:
                 BotDB.add_roster(player['allyCode'], unit_roster['nameKey'], new)
                 updating = True
         if updating:
-            BotDB.del_player(player['allyCode'])
-            BotDB.add_player(player['name'], player['allyCode'], guild_id)
             print(f"Данные игрока {player['name']} обновлены!")
 
     @staticmethod
