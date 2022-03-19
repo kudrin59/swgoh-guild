@@ -9,15 +9,15 @@ class BotDB:
     def close(self):
         self.con.close()
 
-    def user_exist(self, ally):
+    def player_exist(self, ally):
         res = self.cursor.execute("SELECT `allycode` FROM `players` WHERE `allycode` = ?", (ally,))
         return bool(len(res.fetchall()))
 
-    def add_user(self, player_name, ally):
-        self.cursor.execute("INSERT INTO `players` (`name`, `allycode`) VALUES (?, ?)", (player_name, ally))
+    def add_player(self, player_name, ally, guild_id):
+        self.cursor.execute("INSERT INTO `players` (`name`, `allycode`, `guild_id`) VALUES (?, ?, ?)", (player_name, ally, guild_id))
         return self.con.commit()
 
-    def del_user(self, ally):
+    def del_player(self, ally):
         self.cursor.execute("DELETE FROM `players` WHERE `allycode` = ?", (ally,))
         return self.con.commit()
 
@@ -40,3 +40,20 @@ class BotDB:
             "INSERT INTO `history` (`allycode`, `name`, `old_rarity`, `old_gear`, `old_relic`, `old_zetas`, `old_omicrons`, `new_rarity`, `new_gear`, `new_relic`, `new_zetas`, `new_omicrons`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (ally, name, old[0], old[1], old[2], old[3], old[4], new[0], new[1], new[2], new[3], new[4]))
         return self.con.commit()
+
+    def get_users(self):
+        res = self.cursor.execute("SELECT `id`, `allycode`, `login` FROM `users` WHERE `dostup` = 1")
+        return res.fetchall()
+
+    def guild_exist(self, user_id):
+        res = self.cursor.execute("SELECT `id` FROM `guilds` WHERE `user_id` = ?", (user_id,))
+        return bool(len(res.fetchall()))
+
+    def get_guild(self, client_guild_name):
+        res = self.cursor.execute("SELECT `id` FROM `guilds` WHERE `name` = ?", (client_guild_name,))
+        return res.fetchall()
+
+    def add_guild(self, client_id, client_guild_name):
+        self.cursor.execute("INSERT INTO `guilds` (`user_id`, `name`) VALUES (?, ?)", (client_id, client_guild_name))
+        self.con.commit()
+        return self.get_guild(client_guild_name)

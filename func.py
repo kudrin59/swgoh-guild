@@ -23,13 +23,14 @@ class func:
         payload['allycodes'] = guild
         payload['language'] = "rus_ru"
         payload['enums'] = True
-        return sw.fetchGuilds(payload)
+        data = sw.fetchGuilds(payload)
+        return data[0]
 
     @staticmethod
     def get_players(guild):
         print('Получаем список игроков гильдии...')
         allys = []
-        for player in guild[0]['roster']:
+        for player in guild['roster']:
             allys.append(player['allyCode'])
         return allys
 
@@ -72,15 +73,36 @@ class func:
         return omicron_skills
 
     @staticmethod
+    def get_clients():
+        return BotDB.get_users()
+
+    @staticmethod
+    def guild_exist(client_guild_name, client_id):
+        guild_id = BotDB.get_guild(client_guild_name)
+        if not bool(len(guild_id)):
+            guild_id = func.add_guild(client_id, client_guild_name)
+        return guild_id[0][0]
+
+    @staticmethod
+    def add_guild(client_id, client_guild_name):
+        guild_id = BotDB.add_guild(client_id, client_guild_name)
+        print(f"Гильдия {client_guild_name} добавлена в БД!")
+        return guild_id
+
+    @staticmethod
+    def get_guild_bd(client_id, client_guild_name):
+        return BotDB.get_guild(client_id, client_guild_name)
+
+    @staticmethod
     def user_exist(player):
-        return BotDB.user_exist(player['allyCode'])
+        return BotDB.player_exist(player['allyCode'])
 
     @staticmethod
     def get_roster(ally):
         return BotDB.get_roster(ally)
 
     @staticmethod
-    def roster_updated(player, old_roster):
+    def roster_updated(player, old_roster, guild_id):
         updating = False
         for unit_roster in player['roster']:
             unit_zetas, unit_omicrons = func.get_zetas(unit_roster)
@@ -116,15 +138,14 @@ class func:
                 BotDB.add_roster(player['allyCode'], unit_roster['nameKey'], new)
                 updating = True
         if updating:
-            BotDB.del_user(player['allyCode'])
-            BotDB.add_user(player['name'], player['allyCode'])
+            BotDB.del_player(player['allyCode'])
+            BotDB.add_player(player['name'], player['allyCode'], guild_id)
             print(f"Данные игрока {player['name']} обновлены!")
 
     @staticmethod
-    def add_user(player):
-        BotDB.add_user(player['name'], player['allyCode'])
+    def add_user(player, guild_id):
+        BotDB.add_player(player['name'], player['allyCode'], guild_id)
         for unit in player['roster']:
-            name = unit['nameKey']
             rarity = unit['rarity']
             gear = unit['gear']
             zetas, omicrons = func.get_zetas(unit)
@@ -132,7 +153,7 @@ class func:
                 relic = unit['relic']['currentTier']
             else:
                 relic = 0
-            new = [player['allyCode'], name, rarity, gear, relic, zetas, omicrons]
+            new = [rarity, gear, relic, zetas, omicrons]
             BotDB.add_roster(player['allyCode'], unit['nameKey'], new)
         print(f"Игрок {player['name']} добавлен в БД!")
 
