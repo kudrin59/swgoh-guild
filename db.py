@@ -1,9 +1,10 @@
 import sqlite3
-
+import datetime
 
 class BotDB:
-    def __init__(self, db_file):
-        self.con = sqlite3.connect(db_file)
+    def __init__(self):
+        self.db_file = 'db.db'
+        self.con = sqlite3.connect(self.db_file)
         self.cursor = self.con.cursor()
 
     def close(self):
@@ -51,6 +52,11 @@ class BotDB:
 
     def get_guild(self, client_guild_name):
         res = self.cursor.execute("SELECT `id` FROM `guilds` WHERE `name` = ?", (client_guild_name,))
+        return res.fetchall()
+
+    def guild_update(self, guild_id):
+        date = datetime.datetime.now()
+        res = self.cursor.execute("UPDATE `guilds` SET `date` = ? WHERE `id` = ?", (date, guild_id))
         return res.fetchall()
 
     def add_guild(self, client_id, client_guild_name):

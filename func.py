@@ -1,7 +1,7 @@
 from db import BotDB
 from swgoh_help import *
 
-BotDB = BotDB('db.db')
+db = BotDB()
 
 
 class func:
@@ -74,32 +74,34 @@ class func:
 
     @staticmethod
     def get_clients():
-        return BotDB.get_users()
+        return db.get_users()
 
     @staticmethod
     def guild_exist(client_guild_name, client_id):
-        guild_id = BotDB.get_guild(client_guild_name)
+        guild_id = db.get_guild(client_guild_name)
         if not bool(len(guild_id)):
             guild_id = func.add_guild(client_id, client_guild_name)
+        else:
+            db.guild_update(guild_id[0][0])
         return guild_id[0][0]
 
     @staticmethod
     def add_guild(client_id, client_guild_name):
-        guild_id = BotDB.add_guild(client_id, client_guild_name)
+        guild_id = db.add_guild(client_id, client_guild_name)
         print(f"Гильдия {client_guild_name} добавлена в БД!")
         return guild_id
 
     @staticmethod
     def get_guild_bd(client_id, client_guild_name):
-        return BotDB.get_guild(client_id, client_guild_name)
+        return db.get_guild(client_id, client_guild_name)
 
     @staticmethod
     def user_exist(player):
-        return BotDB.player_exist(player['allyCode'])
+        return db.player_exist(player['allyCode'])
 
     @staticmethod
     def get_roster(ally):
-        return BotDB.get_roster(ally)
+        return db.get_roster(ally)
 
     @staticmethod
     def roster_updated(player, old_roster, guild_id):
@@ -130,19 +132,19 @@ class func:
                     break
             if find:
                 if need_update:
-                    BotDB.del_roster(player['allyCode'], unit_roster['nameKey'])
-                    BotDB.add_roster(player['allyCode'], unit_roster['nameKey'], new)
-                    BotDB.add_history(player['allyCode'], unit_roster['nameKey'], old, new)
+                    db.del_roster(player['allyCode'], unit_roster['nameKey'])
+                    db.add_roster(player['allyCode'], unit_roster['nameKey'], new)
+                    db.add_history(player['allyCode'], unit_roster['nameKey'], old, new)
                     updating = True
             else:
-                BotDB.add_roster(player['allyCode'], unit_roster['nameKey'], new)
+                db.add_roster(player['allyCode'], unit_roster['nameKey'], new)
                 updating = True
         if updating:
             print(f"Данные игрока {player['name']} обновлены!")
 
     @staticmethod
     def add_user(player, guild_id):
-        BotDB.add_player(player['name'], player['allyCode'], guild_id)
+        db.add_player(player['name'], player['allyCode'], guild_id)
         for unit in player['roster']:
             rarity = unit['rarity']
             gear = unit['gear']
@@ -152,7 +154,7 @@ class func:
             else:
                 relic = 0
             new = [rarity, gear, relic, zetas, omicrons]
-            BotDB.add_roster(player['allyCode'], unit['nameKey'], new)
+            db.add_roster(player['allyCode'], unit['nameKey'], new)
         print(f"Игрок {player['name']} добавлен в БД!")
 
     @staticmethod
